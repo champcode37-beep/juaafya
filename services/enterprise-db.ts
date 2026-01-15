@@ -206,33 +206,49 @@ export const enterpriseDb = {
   },
 
   async createInvitation(email: string, role: UserRole): Promise<OrganizationInvitation | null> {
+    // 1. Get clinic ID
     const clinicId = await getClinicId()
+    if (!clinicId) {
+      logger.error("Cannot create invitation: User has no clinic_id")
+      throw new Error("You must be associated with a clinic to invite team members")
+    }
+
+    // 2. Get current user
     const {
       data: { user },
     } = await supabase.auth.getUser()
-    if (!clinicId || !user) return null
+
+    if (!user) {
+      logger.error("Cannot create invitation: No authenticated user")
+      throw new Error("You must be logged in to invite team members")
+    }
 
     const normalizedEmail = email.toLowerCase().trim()
 
-    // 1. Check if user already exists
+    // 3. Validate email format
+    if (!normalizedEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizedEmail)) {
+      throw new Error("Invalid email address")
+    }
+
+    // 4. Check if user already exists
     const { data: existingUser } = await supabase
       .from("users")
-      .select("id, clinic_id")
+      .select("id, clinic_id, email")
       .eq("email", normalizedEmail)
       .maybeSingle()
 
     if (existingUser) {
       if (existingUser.clinic_id === clinicId) {
-        throw new Error("User is already a member of this clinic")
+        throw new Error(`${existingUser.email} is already a member of this clinic`)
       } else {
-        throw new Error("A user with this email already belongs to another clinic")
+        throw new Error(`A user with email ${existingUser.email} already belongs to another clinic`)
       }
     }
 
-    // Normalize role for DB (snake_case)
+    // 5. Normalize role for DB (snake_case)
     const dbRole = NEW_ROLE_MAP[role] || role.toLowerCase().replace(" ", "_")
 
-    // 2. Upsert invitation (allows re-sending/updating)
+    // 6. Upsert invitation (allows re-sending/updating)
     const { data, error } = await supabase
       .from("invitations")
       .upsert({
@@ -256,7 +272,15 @@ export const enterpriseDb = {
         hint: error?.hint,
         error: error
       })
-      throw new Error(error?.message || "Failed to create invitation")
+
+      // Provide more specific error messages based on error code
+      if (error?.code === '42501') {
+        throw new Error("Permission denied. You may not have the required role to invite team members.")
+      } else if (error?.code === '23505') {
+        throw new Error("An invitation for this email already exists")
+      } else {
+        throw new Error(error?.message || "Failed to create invitation. Please try again or contact support.")
+      }
     }
 
     return {
