@@ -194,7 +194,7 @@ export const db = {
         const { data, error } = await supabase
             .from('inventory_logs')
             .select('*')
-            .order('timestamp', { ascending: false })
+            .order('created_at', { ascending: false })
             .limit(100);
 
         if (error) throw error;
@@ -206,7 +206,7 @@ export const db = {
             action: l.action,
             quantityChange: l.quantity_change,
             notes: l.notes,
-            timestamp: l.timestamp,
+            timestamp: l.created_at, // Map created_at to timestamp
             user: l.user_name || l.user
         }));
     },
@@ -230,7 +230,7 @@ export const db = {
             action: data.action,
             quantityChange: data.quantity_change,
             notes: data.notes,
-            timestamp: data.timestamp,
+            timestamp: data.created_at, // Map created_at to timestamp
             user: data.user_name || data.user
         };
     },
