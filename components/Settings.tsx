@@ -439,9 +439,10 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme, settings, 
 
             setShowInviteModal(false);
             setInviteForm({ name: '', email: '', role: 'Doctor' });
-        } catch (error) {
+        } catch (error: any) {
             console.error('Failed to invite member:', error);
-            actions.showToast('Failed to send invitation. Please try again.', 'error');
+            const errorMsg = error.message || 'Failed to send invitation. Please try again.';
+            actions.showToast(errorMsg, 'error');
         } finally {
             setIsSaving(false);
         }
@@ -1014,10 +1015,13 @@ const Settings: React.FC<SettingsProps> = ({ isDarkMode, toggleTheme, settings, 
                                     value={inviteForm.role} onChange={e => setInviteForm({ ...inviteForm, role: e.target.value as Role })}
                                     className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 outline-none focus:ring-2 focus:ring-teal-500 dark:text-white"
                                 >
+                                    <option value="Admin">Admin</option>
                                     <option value="Doctor">Doctor</option>
                                     <option value="Nurse">Nurse</option>
                                     <option value="Receptionist">Receptionist</option>
-                                    <option value="Admin">Admin</option>
+                                    <option value="Lab Tech">Lab Tech</option>
+                                    <option value="Pharmacist">Pharmacist</option>
+                                    <option value="Accountant">Accountant</option>
                                 </select>
                             </div>
                             <div className="flex gap-3 mt-6">

@@ -212,17 +212,38 @@ export const enterpriseDb = {
     } = await supabase.auth.getUser()
     if (!clinicId || !user) return null
 
+    const normalizedEmail = email.toLowerCase().trim()
+
+    // 1. Check if user already exists
+    const { data: existingUser } = await supabase
+      .from("users")
+      .select("id, clinic_id")
+      .eq("email", normalizedEmail)
+      .maybeSingle()
+
+    if (existingUser) {
+      if (existingUser.clinic_id === clinicId) {
+        throw new Error("User is already a member of this clinic")
+      } else {
+        throw new Error("A user with this email already belongs to another clinic")
+      }
+    }
+
     // Normalize role for DB (snake_case)
     const dbRole = NEW_ROLE_MAP[role] || role.toLowerCase().replace(" ", "_")
 
+    // 2. Upsert invitation (allows re-sending/updating)
     const { data, error } = await supabase
       .from("invitations")
-      .insert({
+      .upsert({
         clinic_id: clinicId,
-        email: email.toLowerCase().trim(),
+        email: normalizedEmail,
         role: dbRole,
         invited_by: user.id,
         status: "pending",
+        expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // Reset expiry on re-invite
+      }, {
+        onConflict: 'email'
       })
       .select()
       .single()
