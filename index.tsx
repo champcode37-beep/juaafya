@@ -2,10 +2,14 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { RouterProvider } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import { router } from './router';
 import './index.css';
 import logger from './lib/logger';
 import { performanceMonitor } from './lib/performance';
+
+// Initialize Vercel Speed Insights
+injectSpeedInsights();
 
 // Suppress Recharts dimension warnings; forward other warnings to central logger
 // Using `logger.warn` keeps warnings subject to `VERBOSE` flag.
