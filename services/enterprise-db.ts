@@ -249,7 +249,13 @@ export const enterpriseDb = {
       .single()
 
     if (error || !data) {
-      logger.error("Error creating invitation:", error)
+      logger.error("Error creating invitation:", {
+        message: error?.message,
+        code: error?.code,
+        details: error?.details,
+        hint: error?.hint,
+        error: error
+      })
       throw new Error(error?.message || "Failed to create invitation")
     }
 
