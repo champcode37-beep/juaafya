@@ -1,5 +1,6 @@
 import React, { useEffect, Suspense, lazy } from "react"
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js"
+import { Analytics } from "@vercel/analytics/react"
 import Sidebar from "./components/Sidebar"
 import ErrorBoundary from "./components/ErrorBoundary"
 import type { TeamMember } from "./types/index"
@@ -252,6 +253,7 @@ const App: React.FC = () => {
 
     return (
         <ErrorBoundary>
+            <Analytics />
             <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex flex-col md:flex-row transition-colors duration-200 font-sans">
                 <Sidebar
                     currentView={currentView as any}
