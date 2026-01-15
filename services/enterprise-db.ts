@@ -283,6 +283,40 @@ export const enterpriseDb = {
       }
     }
 
+    // 7. Get clinic and inviter details for email
+    const { data: clinic } = await supabase
+      .from("clinics")
+      .select("name")
+      .eq("id", clinicId)
+      .single()
+
+    const { data: inviter } = await supabase
+      .from("users")
+      .select("full_name")
+      .eq("id", user.id)
+      .single()
+
+    // 8. Send invitation email
+    try {
+      const { sendInvitationEmail } = await import('./emailService')
+
+      // Generate invitation link
+      const invitationLink = `${window.location.origin}/signup?invitation=${data.id}&email=${encodeURIComponent(normalizedEmail)}`
+
+      await sendInvitationEmail(
+        normalizedEmail,
+        inviter?.full_name || "Your colleague",
+        clinic?.name || "the clinic",
+        invitationLink
+      )
+
+      logger.log("Invitation email sent successfully", { email: normalizedEmail })
+    } catch (emailError) {
+      // Log the error but don't fail the invitation creation
+      logger.error("Failed to send invitation email:", emailError)
+      // Note: The invitation is still created in the database
+    }
+
     return {
       id: data.id,
       clinicId: data.clinic_id,
