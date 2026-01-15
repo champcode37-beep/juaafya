@@ -1,6 +1,6 @@
 import { supabase } from '../lib/supabaseClient';
 import { TeamMember } from '../types';
-import { NEW_ROLE_MAP } from '../types/enterprise';
+import { NEW_ROLE_MAP, LEGACY_ROLE_MAP } from '../types/enterprise';
 import type { UserRole } from '../types/enterprise';
 import { enterpriseDb } from './enterprise-db';
 import logger from '../lib/logger';
@@ -70,17 +70,28 @@ export const teamService = {
         return [];
       }
 
-      if (!users || users.length === 0) {
-        logger.warn('[teamService] No team members found');
-        return [];
+      // 1. Map users to TeamMember format
+      const teamMembers: TeamMember[] = (users || []).map(mapUserToTeamMember);
+
+      // 2. Fetch pending invitations and merge them
+      try {
+        const invitations = await enterpriseDb.getInvitations();
+        const invitedMembers: TeamMember[] = invitations.map(inv => ({
+          id: inv.id,
+          name: inv.email.split('@')[0],
+          email: inv.email,
+          role: inv.role as any,
+          status: 'Invited',
+          lastActive: 'Never',
+          avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(inv.email)}&background=CBD5E1&color=64748B`,
+        }));
+
+        // Merge and avoid duplicates if any (though invitations table is separate)
+        return [...teamMembers, ...invitedMembers];
+      } catch (invError) {
+        logger.warn('[teamService] Could not fetch invitations:', invError);
+        return teamMembers;
       }
-
-      // Map users to TeamMember format
-      const teamMembers: TeamMember[] = users.map(mapUserToTeamMember);
-
-      logger.log(`[teamService] Loaded ${teamMembers.length} team members`);
-      return teamMembers;
-
     } catch (error) {
       console.error('[teamService] Error loading team members:', error);
       return [];
@@ -182,16 +193,16 @@ export const teamService = {
  * Helper function to map Supabase user to TeamMember
  */
 function mapUserToTeamMember(user: any): TeamMember {
-  const role = user.role as UserRole;
-  const legacyRole = NEW_ROLE_MAP[role] || 'Doctor';
+  const dbRole = user.role as string;
+  const capitalizedRole = LEGACY_ROLE_MAP[dbRole] || LEGACY_ROLE_MAP[dbRole.toLowerCase()] || dbRole || 'Doctor';
 
   return {
-    id: user.id,
+    id: user.id || Math.random().toString(36).substring(7),
     clinicId: user.clinic_id || undefined,
     name: user.full_name || user.email?.split('@')[0] || 'User',
     email: user.email || '',
     phone: user.phone || undefined,
-    role: legacyRole as any,
+    role: capitalizedRole as any,
     status: user.status === 'active' ? 'Active' : user.status === 'suspended' ? 'Deactivated' : 'Invited',
     lastActive: formatLastActive(user.last_active_at),
     avatar: user.avatar_url || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.full_name || user.email || 'User')}&background=3462EE&color=fff`,

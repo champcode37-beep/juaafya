@@ -250,7 +250,7 @@ export const enterpriseDb = {
 
     if (error || !data) {
       logger.error("Error creating invitation:", error)
-      return null
+      throw new Error(error?.message || "Failed to create invitation")
     }
 
     return {
