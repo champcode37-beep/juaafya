@@ -27,7 +27,7 @@ supabase/migrations/20260110000000_auto_create_clinic_on_signup.sql
 ```
 
 **To apply it:**
-1. Go to your Supabase Dashboard: https://tlraaxpemekmjpcbwpny.supabase.co
+1. Go to your Supabase Dashboard: [YOUR_SUPABASE_URL]
 2. Navigate to **SQL Editor**
 3. Click **New Query**
 4. Copy the contents of `supabase/migrations/20260110000000_auto_create_clinic_on_signup.sql`

@@ -14,7 +14,7 @@ This means:
 
 ### Step 1: Access Supabase SQL Editor
 
-1. Go to your Supabase project: https://tlraaxpemekmjpcbwpny.supabase.co
+1. Go to your Supabase project: [YOUR_SUPABASE_URL]
 2. Click **SQL Editor** in the left sidebar
 3. Click **New Query**
 

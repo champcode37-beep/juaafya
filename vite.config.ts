@@ -25,7 +25,6 @@ export default defineConfig(({ mode }) => {
       // Support VITE_ prefix (standard Vite convention)
       "import.meta.env.VITE_SUPABASE_URL": JSON.stringify(supabaseUrl),
       "import.meta.env.VITE_SUPABASE_ANON_KEY": JSON.stringify(supabaseKey),
-      "import.meta.env.VITE_GEMINI_API_KEY": JSON.stringify(geminiKey),
       // Also inject NEXT_PUBLIC_ variants for production builds
       "import.meta.env.NEXT_PUBLIC_SUPABASE_URL": JSON.stringify(supabaseUrl),
       "import.meta.env.NEXT_PUBLIC_SUPABASE_ANON_KEY": JSON.stringify(supabaseKey),

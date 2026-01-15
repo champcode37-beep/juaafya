@@ -1,6 +1,9 @@
 
 const API_BASE_URL = 'https://sms.mobiwave.co.ke/api/v3';
-const API_TOKEN = import.meta.env.VITE_MOBIWAVE_API_TOKEN || '49|LNFe8WJ7CPtvl2mzowAB4ll4enbFR0XGgnQh2qWY';
+
+// NOTE: Mobiwave API calls should be made through Supabase Edge Functions
+// to keep the API token secure on the server side.
+// This service is kept for reference but should be migrated to edge functions.
 
 export interface MobiwaveResponse<T = any> {
     status: 'success' | 'error';
@@ -20,144 +23,82 @@ export interface MobiwaveGroup {
     name: string;
 }
 
-const headers = {
-    'Authorization': `Bearer ${API_TOKEN}`,
-    'Content-Type': 'application/json',
-    'Accept': 'application/json',
-};
+// Helper to call Mobiwave via Supabase Edge Function
+async function callMobiwaveEdgeFunction(action: string, payload: any): Promise<MobiwaveResponse> {
+    try {
+        const { supabase } = await import('../lib/supabaseClient');
+        const { data, error } = await supabase.functions.invoke('mobiwave-proxy', {
+            body: { action, ...payload }
+        });
+
+        if (error) {
+            return { status: 'error', message: error.message };
+        }
+
+        return data || { status: 'error', message: 'No response from server' };
+    } catch (error) {
+        return { status: 'error', message: String(error) };
+    }
+}
 
 export const mobiwaveService = {
     // --- SMS API ---
     sendSMS: async (recipient: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/sms/send`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    recipient,
-                    sender_id: senderId,
-                    type: 'plain',
-                    message,
-                }),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('sendSMS', {
+            recipient,
+            sender_id: senderId,
+            type: 'plain',
+            message,
+        });
     },
 
     sendCampaign: async (contactListId: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/sms/campaign`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    contact_list_id: contactListId,
-                    sender_id: senderId,
-                    type: 'plain',
-                    message,
-                }),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('sendCampaign', {
+            contact_list_id: contactListId,
+            sender_id: senderId,
+            type: 'plain',
+            message,
+        });
     },
 
     // --- Contacts API ---
     getContactsInGroup: async (groupId: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts/${groupId}/all`, {
-                method: 'POST',
-                headers,
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('getContactsInGroup', { groupId });
     },
 
     storeContact: async (groupId: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts/${groupId}/store`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({
-                    phone,
-                    first_name: firstName,
-                    last_name: lastName,
-                }),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('storeContact', {
+            groupId,
+            phone,
+            first_name: firstName,
+            last_name: lastName,
+        });
     },
 
     updateContact: async (groupId: string, contactUid: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts/${groupId}/update/${contactUid}`, {
-                method: 'PATCH',
-                headers,
-                body: JSON.stringify({
-                    phone,
-                    first_name: firstName,
-                    last_name: lastName,
-                }),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('updateContact', {
+            groupId,
+            contactUid,
+            phone,
+            first_name: firstName,
+            last_name: lastName,
+        });
     },
 
     deleteContact: async (groupId: string, contactUid: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts/${groupId}/delete/${contactUid}`, {
-                method: 'DELETE',
-                headers,
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('deleteContact', { groupId, contactUid });
     },
 
     // --- Groups API ---
     getGroups: async (): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts`, {
-                method: 'GET',
-                headers,
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('getGroups', {});
     },
 
     storeGroup: async (name: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts`, {
-                method: 'POST',
-                headers,
-                body: JSON.stringify({ name }),
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('storeGroup', { name });
     },
 
     deleteGroup: async (groupId: string): Promise<MobiwaveResponse> => {
-        try {
-            const response = await fetch(`${API_BASE_URL}/contacts/${groupId}`, {
-                method: 'DELETE',
-                headers,
-            });
-            return await response.json();
-        } catch (error) {
-            return { status: 'error', message: String(error) };
-        }
+        return callMobiwaveEdgeFunction('deleteGroup', { groupId });
     },
 };

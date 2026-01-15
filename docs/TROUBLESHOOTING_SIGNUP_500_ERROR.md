@@ -10,7 +10,7 @@ This error typically occurs when the database trigger function fails during user
 
 The fix requires running the updated migration in your Supabase database. 
 
-1. Go to your Supabase Dashboard: https://tlraaxpemekmjpcbwpny.supabase.co
+1. Go to your Supabase Dashboard: [YOUR_SUPABASE_URL]
 2. Navigate to **SQL Editor**
 3. Click **New Query**
 4. Copy the **entire contents** of `supabase/migrations/20260110000000_auto_create_clinic_on_signup.sql`

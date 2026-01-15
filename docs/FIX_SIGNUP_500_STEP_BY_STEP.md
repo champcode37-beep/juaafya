@@ -5,7 +5,7 @@ You're getting: `Database error saving new user` - This means the trigger is run
 
 ## Step 1: Apply the Debug Migration
 
-1. Go to https://tlraaxpemekmjpcbwpny.supabase.co
+1. Go to [YOUR_SUPABASE_URL]
 2. Navigate to **SQL Editor**
 3. Click **New Query**
 4. Copy the **entire contents** of `supabase/migrations/20260113000000_fix_signup_trigger_debug.sql`
