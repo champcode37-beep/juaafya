@@ -1,0 +1,219 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Updated color palette with JuaAfya brand colors */
+:root {
+  --background: #ffffff;
+  --foreground: #121721;
+  --card: #ffffff;
+  --card-foreground: #121721;
+  --popover: #ffffff;
+  --popover-foreground: #121721;
+  --primary: #3462ee;
+  --primary-foreground: #ffffff;
+  --secondary: #eaf0dc;
+  --secondary-foreground: #121721;
+  --muted: #eaf0dc;
+  --muted-foreground: #4a5568;
+  --accent: #efe347;
+  --accent-foreground: #121721;
+  --destructive: #e53e3e;
+  --destructive-foreground: #ffffff;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #3462ee;
+  --chart-1: #3462ee;
+  --chart-2: #4a91a8;
+  --chart-3: #efe347;
+  --chart-4: #eaf0dc;
+  --chart-5: #121721;
+  --radius: 0.625rem;
+  --sidebar: #121721;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #3462ee;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e2533;
+  --sidebar-ring: #3462ee;
+
+  /* Custom brand colors */
+  --navy: #121721;
+  --blue: #3462ee;
+  --yellow: #efe347;
+  --teal: #4a91a8;
+  --cream: #eaf0dc;
+}
+
+.dark {
+  --background: #121721;
+  --foreground: #ffffff;
+  --card: #1e2533;
+  --card-foreground: #ffffff;
+  --popover: #1e2533;
+  --popover-foreground: #ffffff;
+  --primary: #3462ee;
+  --primary-foreground: #ffffff;
+  --secondary: #2d3748;
+  --secondary-foreground: #ffffff;
+  --muted: #2d3748;
+  --muted-foreground: #a0aec0;
+  --accent: #efe347;
+  --accent-foreground: #121721;
+  --destructive: #fc8181;
+  --destructive-foreground: #121721;
+  --border: #2d3748;
+  --input: #2d3748;
+  --ring: #3462ee;
+  --chart-1: #3462ee;
+  --chart-2: #4a91a8;
+  --chart-3: #efe347;
+  --chart-4: #eaf0dc;
+  --chart-5: #ffffff;
+  --sidebar: #0d1117;
+  --sidebar-foreground: #ffffff;
+  --sidebar-primary: #3462ee;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #1e2533;
+  --sidebar-accent-foreground: #ffffff;
+  --sidebar-border: #1e2533;
+  --sidebar-ring: #3462ee;
+}
+
+@theme {
+  /* Updated font to Outfit (Google Font) */
+  --font-sans: "Outfit", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", monospace;
+
+  /* Proper color definitions for v4 */
+  --color-brand-dark: var(--navy);
+  --color-brand-blue: var(--blue);
+  --color-brand-yellow: var(--yellow);
+  --color-brand-teal: var(--teal);
+  --color-brand-cream: var(--cream);
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+@layer base {
+  html {
+    font-size: 90%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+  }
+
+  /* Reset border color globally without @apply on * to prevent parser crash */
+  *,
+  ::before,
+  ::after {
+    border-color: var(--border, currentColor);
+  }
+}
+
+/* Scrollbar hide utility */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Responsive Utilities using @apply on specific classes */
+.container-responsive {
+  @apply w-full px-4 sm:px-6 md:px-8 mx-auto;
+}
+
+.glass {
+  @apply bg-white/70 dark:bg-brand-dark/60 backdrop-blur-md border border-white/20 dark:border-white/10;
+}
+
+.glass-dark {
+  @apply bg-brand-dark/80 backdrop-blur-xl border border-white/5;
+}
+
+.table-container {
+  @apply overflow-x-auto -mx-4 sm:mx-0;
+}
+
+.table-responsive {
+  @apply min-w-full divide-y divide-slate-100 dark:divide-white/5;
+}
+
+.grid-responsive {
+  @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+}
+
+.card-elegant {
+  @apply bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-3xl sm:rounded-[2.5rem] shadow-sm hover:shadow-md transition-all duration-300;
+}
+
+/* Custom utility classes for brand colors */
+.bg-pastel-blue {
+  background-color: #dbeafe;
+}
+
+.bg-pastel-pink {
+  background-color: #fce7f3;
+}
+
+.bg-pastel-green {
+  background-color: #d1fae5;
+}
+
+.bg-pastel-purple {
+  background-color: #ede9fe;
+}
+
+/* Font size adjustments for mobile */
+@media (max-width: 640px) {
+  html {
+    font-size: 85%;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+}
