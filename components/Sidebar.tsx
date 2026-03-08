@@ -302,7 +302,7 @@ const SidebarNavItem = memo(({ item, isActive, onClick, badge }: {
     onClick={onClick}
     className={`w-full flex items-center justify-between p-3.5 rounded-2xl transition-all duration-300 group ${isActive
       ? "bg-brand-blue text-white shadow-lg shadow-brand-blue/30 scale-[1.02]"
-      : "text-slate-400 hover:bg-brand-dark/50 hover:text-white"
+      : "text-slate-400 hover:bg-[#121721]/50 hover:text-white"
       }`}
   >
     <div className="flex items-center gap-4">

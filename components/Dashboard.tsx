@@ -174,7 +174,7 @@ const Dashboard: React.FC = () => {
                 <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Analytics Overview</h3>
                 <p className="text-xs text-slate-400 font-medium mt-1">Patient visits and engagement</p>
               </div>
-              <div className="flex bg-slate-100 dark:bg-brand-dark/60 p-1 rounded-2xl w-full sm:w-auto">
+              <div className="flex bg-slate-100 dark:bg-[#121721]/60 p-1 rounded-2xl w-full sm:w-auto">
                 {["Weekly", "Monthly"].map(range => (
                   <button
                     key={range}

@@ -80,24 +80,24 @@ const PatientRow: React.FC<PatientRowProps> = memo(({
                             <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-100 dark:border-slate-800 py-2 z-[100] animate-in fade-in zoom-in-95 duration-200">
                                 <button
                                     onClick={() => onEdit(patient)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-brand-dark/40 flex items-center gap-3 transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#121721]/40 flex items-center gap-3 transition-colors"
                                 >
                                     <Edit2 className="w-4 h-4 text-brand-blue" /> Edit Record
                                 </button>
                                 <button
                                     onClick={() => onSms(patient)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-brand-dark/40 flex items-center gap-3 transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#121721]/40 flex items-center gap-3 transition-colors"
                                 >
                                     <MessageSquare className="w-4 h-4 text-brand-teal" /> Draft SMS
                                 </button>
                                 <button
                                     onClick={() => onCall(patient.phone)}
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-brand-dark/40 flex items-center gap-3 transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#121721]/40 flex items-center gap-3 transition-colors"
                                 >
                                     <Phone className="w-4 h-4 text-indigo-500" /> Call Patient
                                 </button>
                                 <button
-                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-brand-dark/40 flex items-center gap-3 transition-colors"
+                                    className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-[#121721]/40 flex items-center gap-3 transition-colors"
                                 >
                                     <Printer className="w-4 h-4 text-slate-400" /> Print Summary
                                 </button>

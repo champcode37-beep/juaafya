@@ -6,20 +6,30 @@ export enum Gender {
 
 export interface Patient {
   id: string
+  clinic_id?: string
   name: string
+  full_name?: string
   phone: string
+  phone_number?: string
   age: number
+  date_of_birth?: string
   gender: Gender
   lastVisit: string
+  last_visit?: string
   notes: string
   history: string[] // Clinical history and past visits
   allergies?: string[]
+  chronicConditions?: string[]
+  chronic_conditions?: string[]
   bloodGroup?: string
+  blood_type?: string
   emergencyContact?: {
     name: string
     phone: string
     relationship: string
   }
+  next_of_kin_name?: string
+  next_of_kin_phone?: string
   vitals?: {
     bp: string
     heartRate: string

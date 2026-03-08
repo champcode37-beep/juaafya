@@ -96,7 +96,7 @@ export const RecentPatientsTable: React.FC<RecentPatientsTableProps> = memo(({
                 </table>
                 {patients.length === 0 && (
                     <div className="p-12 text-center">
-                        <div className="w-16 h-16 bg-slate-50 dark:bg-brand-dark/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-slate-200 dark:border-white/10">
+                        <div className="w-16 h-16 bg-slate-50 dark:bg-[#121721]/20 rounded-full flex items-center justify-center mx-auto mb-4 border border-dashed border-slate-200 dark:border-white/10">
                             <AlertCircle className="w-8 h-8 text-slate-300" />
                         </div>
                         <h4 className="text-slate-400 font-bold mb-1">No patients found</h4>

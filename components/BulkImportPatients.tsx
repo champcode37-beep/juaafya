@@ -21,7 +21,7 @@ const BulkImportPatients: React.FC<BulkImportPatientsProps> = ({ onImport, onClo
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const requiredFields = ['name', 'phone', 'age', 'gender'];
-  const optionalFields = ['notes', 'allergies', 'chronicConditions', 'bloodGroup', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRel'];
+  const optionalFields = ['notes', 'allergies', 'chronic_conditions', 'bloodGroup', 'emergencyContactName', 'emergencyContactPhone', 'emergencyContactRel'];
 
   const downloadTemplate = () => {
     const headers = [...requiredFields, ...optionalFields];
@@ -33,7 +33,7 @@ const BulkImportPatients: React.FC<BulkImportPatientsProps> = ({ onImport, onClo
         gender: 'Male',
         notes: 'Diabetes patient',
         allergies: 'Penicillin, Sulfa',
-        chronicConditions: 'Hypertension, Diabetes',
+        chronic_conditions: 'Hypertension, Diabetes',
         bloodGroup: 'O+',
         emergencyContactName: 'Jane Doe',
         emergencyContactPhone: '+254712345679',

@@ -60,24 +60,54 @@ export interface Database {
                 Row: {
                     id: string
                     clinic_id: string
-                    name: string
-                    phone: string | null
-                    age: number | null
-                    gender: string | null
-                    notes: string | null
-                    last_visit: string | null
-                    history: any[]
-                    vitals: Record<string, any>
+                    mrn?: string
+                    email?: string | null
+                    full_name?: string | null
+                    date_of_birth?: string | null
+                    phone_number?: string | null
+                    phone?: string | null
+                    age?: number | null
+                    gender?: string | null
+                    blood_type?: string | null
+                    bloodGroup?: string
+                    notes?: string | null
+                    allergies?: string[]
+                    chronic_conditions?: string[]
+                    chronicConditions?: string[]
+                    next_of_kin_name?: string | null
+                    next_of_kin_phone?: string | null
+                    emergencyContact?: {
+                        name: string
+                        phone: string
+                        relationship: string
+                    }
+                    insurance_provider?: string | null
+                    insurance_number?: string | null
+                    last_visit?: string | null
+                    history?: any[]
+                    vitals?: Record<string, any>
                     created_at: string
+                    updated_at?: string
                 }
                 Insert: {
                     id?: string
                     clinic_id: string
-                    name: string
+                    mrn?: string
+                    email?: string | null
+                    full_name?: string | null
+                    date_of_birth?: string | null
+                    phone_number?: string | null
                     phone?: string | null
                     age?: number | null
                     gender?: string | null
+                    blood_type?: string | null
                     notes?: string | null
+                    allergies?: string[]
+                    chronic_conditions?: string[]
+                    next_of_kin_name?: string | null
+                    next_of_kin_phone?: string | null
+                    insurance_provider?: string | null
+                    insurance_number?: string | null
                     last_visit?: string | null
                     history?: any[]
                     vitals?: Record<string, any>
@@ -86,15 +116,27 @@ export interface Database {
                 Update: {
                     id?: string
                     clinic_id?: string
-                    name?: string
+                    mrn?: string
+                    email?: string | null
+                    full_name?: string | null
+                    date_of_birth?: string | null
+                    phone_number?: string | null
                     phone?: string | null
                     age?: number | null
                     gender?: string | null
+                    blood_type?: string | null
                     notes?: string | null
+                    allergies?: string[]
+                    chronic_conditions?: string[]
+                    next_of_kin_name?: string | null
+                    next_of_kin_phone?: string | null
+                    insurance_provider?: string | null
+                    insurance_number?: string | null
                     last_visit?: string | null
                     history?: any[]
                     vitals?: Record<string, any>
                     created_at?: string
+                    updated_at?: string
                 }
             }
             inventory: {

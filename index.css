@@ -88,6 +88,17 @@
   --font-mono: "Geist Mono", monospace;
 
   /* Proper color definitions for v4 */
+  --color-brand-50: #eff6ff;
+  --color-brand-100: #dbeafe;
+  --color-brand-200: #bfdbfe;
+  --color-brand-300: #93c5fd;
+  --color-brand-400: #60a5fa;
+  --color-brand-500: var(--primary);
+  --color-brand-600: #2563eb;
+  --color-brand-700: #1d4ed8;
+  --color-brand-800: #1e40af;
+  --color-brand-900: #1e3a8a;
+
   --color-brand-dark: var(--navy);
   --color-brand-blue: var(--blue);
   --color-brand-yellow: var(--yellow);
@@ -164,11 +175,11 @@
 }
 
 .glass {
-  @apply bg-white/70 dark:bg-brand-dark/60 backdrop-blur-md border border-white/20 dark:border-white/10;
+  @apply bg-white dark:bg-[#121721] backdrop-blur-md border border-white/20 dark:border-white/10;
 }
 
 .glass-dark {
-  @apply bg-brand-dark/80 backdrop-blur-xl border border-white/5;
+  @apply bg-[#121721] dark:bg-[#0d1117] backdrop-blur-xl border border-white/5;
 }
 
 .table-container {
@@ -184,7 +195,7 @@
 }
 
 .card-elegant {
-  @apply bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-3xl sm:rounded-[2.5rem] shadow-sm hover:shadow-md transition-all duration-300;
+  @apply bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-3xl sm:rounded-[2.5rem] shadow-sm hover:shadow-md transition-all duration-300;
 }
 
 /* Custom utility classes for brand colors */
@@ -215,5 +226,40 @@
 @media print {
   .no-print {
     display: none !important;
+  }
+
+  .print-only {
+    display: block !important;
+  }
+
+  body {
+    background-color: white !important;
+    color: black !important;
+  }
+
+  #root {
+    margin: 0;
+    padding: 0;
+  }
+
+  /* Hide sidebar and chatbots */
+  aside,
+  nav,
+  button,
+  input,
+  select {
+    display: none !important;
+  }
+
+  /* Ensure content takes full width */
+  main {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Remove shadows and borders for clean print */
+  div {
+    box-shadow: none !important;
+    border: none !important;
   }
 }

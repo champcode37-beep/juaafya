@@ -16,8 +16,8 @@ import PatientFormModal from './patients/PatientFormModal';
 
 interface PatientListProps {
     patients: Patient[];
-    addPatient: (p: Patient) => void;
-    updatePatient: (p: Patient) => void;
+    addPatient: (p: Patient) => Promise<boolean>;
+    updatePatient: (p: Patient) => Promise<boolean>;
     deletePatient: (id: string) => void;
     settings?: ClinicSettings;
 }
@@ -198,7 +198,7 @@ const PatientList: React.FC<PatientListProps> = ({ patients, addPatient, updateP
         setActiveMenuId(null);
     };
 
-    const handleFormSubmit = (e: React.FormEvent) => {
+    const handleFormSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         const patientData: Patient = {
             id: isEditing ? (formData as any).id : `P${Math.floor(Math.random() * 9000 + 1000)}`,
@@ -219,15 +219,24 @@ const PatientList: React.FC<PatientListProps> = ({ patients, addPatient, updateP
             vitals: formData.vitals
         };
 
-        if (isEditing) {
-            updatePatient(patientData);
-            if (selectedPatient?.id === patientData.id) setSelectedPatient(patientData);
-            setIsEditing(false);
-        } else {
-            addPatient(patientData);
-            setIsAdding(false);
+        try {
+            if (isEditing) {
+                const success = await updatePatient(patientData);
+                if (success) {
+                    if (selectedPatient?.id === patientData.id) setSelectedPatient(patientData);
+                    setIsEditing(false);
+                    setFormData(initialFormData);
+                }
+            } else {
+                const success = await addPatient(patientData);
+                if (success) {
+                    setIsAdding(false);
+                    setFormData(initialFormData);
+                }
+            }
+        } catch (err) {
+            actions.showToast("Failed to save patient. Please try again.", "error");
         }
-        setFormData(initialFormData);
     };
 
     const handleSaveVitals = () => {

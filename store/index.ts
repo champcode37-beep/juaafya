@@ -56,9 +56,9 @@ export interface AppState {
         fetchData: () => Promise<void>
 
         // Patient Actions
-        addPatient: (patient: Patient) => Promise<void>
-        bulkAddPatient: (patients: Patient[]) => Promise<void>
-        updatePatient: (patient: Patient) => Promise<void>
+        addPatient: (patient: Patient) => Promise<boolean>
+        bulkAddPatient: (patients: Patient[]) => Promise<boolean>
+        updatePatient: (patient: Patient) => Promise<boolean>
         deletePatient: (id: string) => Promise<void>
 
         // Inventory Actions
@@ -358,9 +358,11 @@ const useStore = create<AppState>((set, get) => ({
                 if (!saved) throw new Error('Failed to create patient')
                 set((state) => ({ patients: [saved, ...state.patients] }))
                 get().actions.showToast(`Patient ${saved.name} added successfully!`)
+                return true
             } catch (e) {
                 logger.error('addPatient error', e)
                 get().actions.showToast("Error adding patient to database.", "error")
+                return false
             }
         },
         bulkAddPatient: async (patients) => {
@@ -369,10 +371,13 @@ const useStore = create<AppState>((set, get) => ({
                 if (savedPatients && savedPatients.length > 0) {
                     set((state) => ({ patients: [...savedPatients, ...state.patients] }))
                     get().actions.showToast(`Imported ${savedPatients.length} patients successfully!`)
+                    return true
                 }
+                return false
             } catch (e) {
                 logger.error('bulkAddPatient error', e)
                 get().actions.showToast("Error during bulk import", "error")
+                return false
             }
         },
         updatePatient: async (updatedPatient) => {
@@ -382,9 +387,11 @@ const useStore = create<AppState>((set, get) => ({
                     patients: state.patients.map((p) => (p.id === updatedPatient.id ? updatedPatient : p)),
                 }))
                 get().actions.showToast(`Patient record updated.`)
+                return true
             } catch (e) {
                 logger.error('updatePatient error', e)
                 get().actions.showToast("Error updating patient", "error")
+                return false
             }
         },
         deletePatient: async (id) => {

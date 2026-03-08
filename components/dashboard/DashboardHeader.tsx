@@ -36,7 +36,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({
                     placeholder="Search records..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-2xl py-2.5 sm:py-3.5 pl-10 sm:pl-12 pr-4 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-blue/40 shadow-sm transition-all text-slate-900 dark:text-white"
+                    className="w-full bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-2xl py-2.5 sm:py-3.5 pl-10 sm:pl-12 pr-4 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand-blue/20 dark:focus:ring-brand-blue/40 shadow-sm transition-all text-slate-900 dark:text-white"
                 />
             </div>
 
@@ -45,7 +45,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({
                 <div className="relative">
                     <button
                         onClick={() => setIsNotifOpen(!isNotifOpen)}
-                        className="p-2 sm:p-3 bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-xl hover:bg-slate-50 dark:hover:bg-brand-dark/60 transition-all text-slate-600 dark:text-slate-300 relative shadow-sm active:scale-95"
+                        className="p-2 sm:p-3 bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-xl hover:bg-slate-50 dark:hover:bg-[#121721]/60 transition-all text-slate-600 dark:text-slate-300 relative shadow-sm active:scale-95"
                     >
                         <Bell className="w-4 h-4 sm:w-5 sm:h-5" />
                         {unreadCount > 0 && (
@@ -82,7 +82,7 @@ export const DashboardHeader: React.FC<DashboardHeaderProps> = memo(({
                 <div className="relative">
                     <button
                         onClick={() => setIsProfileOpen(!isProfileOpen)}
-                        className="flex items-center space-x-2 sm:space-x-3 p-1 sm:p-1.5 pr-2 sm:pr-4 bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-brand-dark/60 transition-all shadow-sm group active:scale-95"
+                        className="flex items-center space-x-2 sm:space-x-3 p-1 sm:p-1.5 pr-2 sm:pr-4 bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-2xl hover:bg-slate-50 dark:hover:bg-[#121721]/60 transition-all shadow-sm group active:scale-95"
                     >
                         <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl overflow-hidden bg-brand-blue/10 border border-brand-blue/20">
                             <img src={currentUser?.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(currentUser?.name || 'User')}&background=3462ee&color=fff`} alt="" className="w-full h-full object-cover" />

@@ -16,7 +16,8 @@ import {
 import { Trash2, Edit2, Phone, Mail, Calendar } from "lucide-react"
 import { canCurrentUser } from '@/lib/roleMapper'
 import useStore from '@/store'
-import type { Patient, Clinic } from "@/types/database"
+import type { Patient } from "@/types/database"
+import type { Clinic } from "@/types/models"
 
 interface PatientListProps {
   patients: Patient[]
@@ -56,9 +57,9 @@ export function PatientList({ patients, onEdit, onRefresh, clinic }: PatientList
             {/* Patient Info */}
             <div className="flex-1">
               <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg text-slate-900 dark:text-white">{patient.full_name}</h3>
+                <h3 className="font-semibold text-lg text-slate-900 dark:text-white">{patient.full_name || patient.name}</h3>
                 <span className="px-2 py-1 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400">
-                  {patient.mrn}
+                  {'mrn' in patient ? patient.mrn : ''}
                 </span>
               </div>
               <div className="mt-2 space-y-1 text-sm text-slate-600 dark:text-slate-400">
@@ -83,7 +84,7 @@ export function PatientList({ patients, onEdit, onRefresh, clinic }: PatientList
               </div>
               {patient.chronic_conditions && patient.chronic_conditions.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-2">
-                  {patient.chronic_conditions.map((condition) => (
+                  {(patient.chronic_conditions as string[]).map((condition: string) => (
                     <span
                       key={condition}
                       className="px-2 py-1 rounded text-xs bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400"
@@ -109,7 +110,7 @@ export function PatientList({ patients, onEdit, onRefresh, clinic }: PatientList
                 <AlertDialogContent>
                   <AlertDialogTitle>Delete Patient</AlertDialogTitle>
                   <AlertDialogDescription>
-                    Are you sure you want to delete {patient.full_name}? This action cannot be undone.
+                    Are you sure you want to delete {patient.full_name || patient.name}? This action cannot be undone.
                   </AlertDialogDescription>
                   <div className="flex justify-end gap-4">
                     <AlertDialogCancel>Cancel</AlertDialogCancel>

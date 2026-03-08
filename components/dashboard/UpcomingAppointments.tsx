@@ -19,7 +19,7 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = memo(({
         .sort((a, b) => a.time.localeCompare(b.time));
 
     return (
-        <div className="bg-white dark:bg-brand-dark/40 border border-slate-100 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col h-full overflow-hidden">
+        <div className="bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col h-full overflow-hidden">
             <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-gradient-to-r from-transparent to-slate-50/30 dark:to-white/5">
                 <div className="flex justify-between items-center mb-6">
                     <div>
@@ -44,8 +44,8 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = memo(({
                                 key={isoDate}
                                 onClick={() => setSelectedDate(isoDate)}
                                 className={`flex flex-col items-center min-w-[50px] py-3 rounded-2xl transition-all duration-300 ${isActive
-                                        ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20'
-                                        : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
+                                    ? 'bg-brand-blue text-white shadow-lg shadow-brand-blue/20'
+                                    : 'bg-slate-100 dark:bg-slate-800 text-slate-500 hover:bg-slate-200 dark:hover:bg-slate-700'
                                     }`}
                             >
                                 <span className={`text-[10px] font-bold uppercase mb-1 ${isActive ? 'text-white/80' : 'text-slate-400'}`}>{dayName}</span>
@@ -68,8 +68,8 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = memo(({
                                 </div>
                             </div>
                             <div className={`flex-1 p-4 rounded-2xl transition-all duration-300 border ${appt.status === 'Completed'
-                                    ? 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-60'
-                                    : 'bg-white dark:bg-slate-800/50 border-slate-50 dark:border-white/5 hover:border-brand-blue/30 group-hover:shadow-md'
+                                ? 'bg-slate-50 dark:bg-white/5 border-slate-100 dark:border-white/5 opacity-60'
+                                : 'bg-white dark:bg-slate-800/50 border-slate-50 dark:border-white/5 hover:border-brand-blue/30 group-hover:shadow-md'
                                 }`}>
                                 <div className="flex justify-between items-start">
                                     <div>
