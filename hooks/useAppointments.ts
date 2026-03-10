@@ -14,8 +14,18 @@ export const appointmentKeys = {
 export function useAppointments() {
     return useQuery({
         queryKey: appointmentKeys.all,
-        queryFn: async () => db.getAppointments(),
+        queryFn: async () => {
+            try {
+                return await db.getAppointments()
+            } catch (error) {
+                console.error("Error fetching appointments:", error)
+                throw error
+            }
+        },
         staleTime: 1000 * 60 * 5, // 5 minutes
+        onError: (error) => {
+            console.error("Error fetching appointments:", error)
+        },
     })
 }
 
@@ -25,12 +35,20 @@ export function useCreateAppointment() {
     const { actions } = useStore()
 
     return useMutation({
-        mutationFn: async (appointment: Appointment) => db.createAppointment(appointment),
+        mutationFn: async (appointment: Appointment) => {
+            try {
+                return await db.createAppointment(appointment)
+            } catch (error) {
+                console.error("Error creating appointment:", error)
+                throw error
+            }
+        },
         onSuccess: (newAppt) => {
             queryClient.invalidateQueries({ queryKey: appointmentKeys.all })
             actions.showToast(`Appointment scheduled for ${newAppt.patientName}.`)
         },
-        onError: () => {
+        onError: (error) => {
+            console.error("Error scheduling appointment:", error)
             actions.showToast("Error scheduling appointment", "error")
         },
     })
@@ -43,13 +61,19 @@ export function useUpdateAppointment() {
 
     return useMutation({
         mutationFn: async (appointment: Appointment) => {
-            await db.updateAppointment(appointment)
-            return appointment
+            try {
+                await db.updateAppointment(appointment)
+                return appointment
+            } catch (error) {
+                console.error("Error updating appointment:", error)
+                throw error
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: appointmentKeys.all })
         },
-        onError: () => {
+        onError: (error) => {
+            console.error("Error updating appointment:", error)
             actions.showToast("Error updating appointment", "error")
         },
     })
