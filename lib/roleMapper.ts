@@ -1,7 +1,3 @@
-/**
- * Role mapping utilities
- * Maps UI-facing `Role` strings to enterprise `UserRole` values used by the permission system.
- */
 import type { UserRole } from '../types/enterprise'
 import type { TeamMember } from '../types'
 import { hasPermission } from './permissions'
@@ -11,7 +7,8 @@ import { LEGACY_ROLE_MAP } from '../types/enterprise'
 
 export function mapRoleToUserRole(role?: string): UserRole | undefined {
   if (!role) return undefined
-  return LEGACY_ROLE_MAP[role] || LEGACY_ROLE_MAP[role.toLowerCase()] || undefined
+  const mappedRole = LEGACY_ROLE_MAP[role] || LEGACY_ROLE_MAP[role.toLowerCase()]
+  return mappedRole
 }
 
 export function userRoleFromMember(member?: TeamMember): UserRole | undefined {
@@ -25,10 +22,12 @@ export function userRoleFromMember(member?: TeamMember): UserRole | undefined {
 export function canCurrentUser(permission: string): boolean {
   try {
     const { currentUser } = useStore.getState()
-    const userRole = mapRoleToUserRole(currentUser?.role)
+    if (!currentUser || !currentUser.role) return false
+    const userRole = mapRoleToUserRole(currentUser.role)
     if (!userRole) return false
     return hasPermission(userRole as UserRole, permission as any)
-  } catch (e) {
+  } catch (error) {
+    console.error('Error checking current user permission', error)
     return false
   }
 }
