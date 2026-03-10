@@ -2,7 +2,11 @@ import { supabase } from '../lib/supabaseClient';
 import { sessionManager } from '../lib/sessionManager';
 import { validation } from '../lib/validation';
 import { TeamMember } from '../types';
+import { LEGACY_ROLE_MAP } from '../types/enterprise';
 
+/**
+ * Auth service for handling authentication and user management
+ */
 export const authService = {
   /**
    * Login with email and password
@@ -114,7 +118,7 @@ export const authService = {
   /**
    * Get current session
    */
-  async getSession() {
+  async getSession(): Promise<any> {
     try {
       const { data, error } = await supabase.auth.getSession();
       if (error) throw error;
@@ -196,8 +200,6 @@ export const authService = {
   },
 };
 
-import { LEGACY_ROLE_MAP } from '../types/enterprise';
-
 /**
  * Helper: Construct TeamMember from Supabase user
  */
@@ -209,7 +211,7 @@ function constructTeamMember(user: any): TeamMember {
     id: user.id,
     name: user.user_metadata?.full_name || user.email?.split('@')[0] || 'User',
     email: user.email || '',
-    role: normalizedRole as any,
+    role: normalizedRole,
     status: 'Active',
     lastActive: new Date().toISOString(),
     avatar: `https://ui-avatars.com/api/?name=${encodeURIComponent(user.email || 'User')}`,
