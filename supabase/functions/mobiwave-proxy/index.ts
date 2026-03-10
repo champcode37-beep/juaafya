@@ -33,12 +33,23 @@ Deno.serve(async (req: Request) => {
         if (!apiToken) {
             return new Response(
                 JSON.stringify({ status: 'error', message: 'Mobiwave API token not configured' }),
-                { status: 500, headers: { 'Content-Type': 'application/json' } }
+                { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
             )
         }
 
         // Parse request
-        const { action, ...payload } = await req.json()
+        let payload: any
+        try {
+            payload = await req.json()
+        } catch (error: any) {
+            return new Response(
+                JSON.stringify({ status: 'error', message: 'Invalid JSON payload' }),
+                { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
+        // Extract action from payload
+        const { action, ...data } = payload
 
         // Build headers
         const headers = {
@@ -55,7 +66,7 @@ Deno.serve(async (req: Request) => {
                 response = await fetch(`${MOBIWAVE_API_BASE}/sms/send`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(data),
                 })
                 break
 
@@ -63,43 +74,43 @@ Deno.serve(async (req: Request) => {
                 response = await fetch(`${MOBIWAVE_API_BASE}/sms/campaign`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify(data),
                 })
                 break
 
             case 'getContactsInGroup':
-                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${payload.groupId}/all`, {
+                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${data.groupId}/all`, {
                     method: 'POST',
                     headers,
                 })
                 break
 
             case 'storeContact':
-                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${payload.groupId}/store`, {
+                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${data.groupId}/store`, {
                     method: 'POST',
                     headers,
                     body: JSON.stringify({
-                        phone: payload.phone,
-                        first_name: payload.first_name,
-                        last_name: payload.last_name,
+                        phone: data.phone,
+                        first_name: data.first_name,
+                        last_name: data.last_name,
                     }),
                 })
                 break
 
             case 'updateContact':
-                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${payload.groupId}/update/${payload.contactUid}`, {
+                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${data.groupId}/update/${data.contactUid}`, {
                     method: 'PATCH',
                     headers,
                     body: JSON.stringify({
-                        phone: payload.phone,
-                        first_name: payload.first_name,
-                        last_name: payload.last_name,
+                        phone: data.phone,
+                        first_name: data.first_name,
+                        last_name: data.last_name,
                     }),
                 })
                 break
 
             case 'deleteContact':
-                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${payload.groupId}/delete/${payload.contactUid}`, {
+                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${data.groupId}/delete/${data.contactUid}`, {
                     method: 'DELETE',
                     headers,
                 })
@@ -116,12 +127,12 @@ Deno.serve(async (req: Request) => {
                 response = await fetch(`${MOBIWAVE_API_BASE}/contacts`, {
                     method: 'POST',
                     headers,
-                    body: JSON.stringify({ name: payload.name }),
+                    body: JSON.stringify({ name: data.name }),
                 })
                 break
 
             case 'deleteGroup':
-                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${payload.groupId}`, {
+                response = await fetch(`${MOBIWAVE_API_BASE}/contacts/${data.groupId}`, {
                     method: 'DELETE',
                     headers,
                 })
@@ -130,18 +141,32 @@ Deno.serve(async (req: Request) => {
             default:
                 return new Response(
                     JSON.stringify({ status: 'error', message: `Unknown action: ${action}` }),
-                    { status: 400, headers: { 'Content-Type': 'application/json' } }
+                    { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
                 )
         }
 
-        const data = await response.json()
-        return new Response(JSON.stringify(data), {
-            headers: { 'Content-Type': 'application/json' },
-        })
+        if (!response.ok) {
+            return new Response(
+                JSON.stringify({ status: 'error', message: `Mobiwave API returned non-OK status: ${response.status}` }),
+                { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
+
+        try {
+            const data = await response.json()
+            return new Response(JSON.stringify(data), {
+                headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            })
+        } catch (error: any) {
+            return new Response(
+                JSON.stringify({ status: 'error', message: `Failed to parse Mobiwave API response` }),
+                { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+            )
+        }
     } catch (error: any) {
         return new Response(
             JSON.stringify({ status: 'error', message: error?.message || 'Unknown error' }),
-            { status: 500, headers: { 'Content-Type': 'application/json' } }
+            { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
     }
 })
