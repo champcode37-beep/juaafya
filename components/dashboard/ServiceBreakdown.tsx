@@ -10,7 +10,11 @@ interface ServiceBreakdownProps {
 }
 
 export function ServiceBreakdown({ data }: ServiceBreakdownProps) {
+    if (!data || !data.length) return null
+
     const total = data.reduce((sum, item) => sum + item.value, 0)
+
+    if (total <= 0) return <div>No data to display</div>
 
     return (
         <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-xl shadow-slate-200/60 dark:shadow-slate-900/30 border border-slate-100 dark:border-slate-700/50">
@@ -63,7 +67,7 @@ export function ServiceBreakdown({ data }: ServiceBreakdownProps) {
                             {item.name}
                         </span>
                         <span className="text-xs font-semibold text-slate-800 dark:text-white ml-auto">
-                            {total > 0 ? Math.round((item.value / total) * 100) : 0}%
+                            {Math.round((item.value / total) * 100)}%
                         </span>
                     </div>
                 ))}
