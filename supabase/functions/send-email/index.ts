@@ -1,4 +1,3 @@
-```typescript
 // Supabase Edge Function - send-email
 // Sends emails via Gmail SMTP
 // Required env vars:
@@ -74,19 +73,51 @@ const closeSmtpConnection = async (client: SmtpClient) => {
   try {
     await client.close()
   } catch (error) {
-    throw new Error(`Failed to close SMTP connection: ${error.message}`)
+    console.error(`Failed to close SMTP connection: ${error.message}`)
+  }
+}
+
+const getEnvVars = () => {
+  const env = (globalThis as any).Deno?.env?.toObject() || {}
+  const SMTP_USER = env?.SMTP_USER || env?.GMAIL_SMTP_USER
+  const SMTP_PASSWORD = env?.SMTP_PASSWORD || env?.GMAIL_SMTP_PASSWORD
+  const SMTP_HOST = env?.SMTP_HOST || env?.GMAIL_SMTP_HOST || "smtp.gmail.com"
+  const SMTP_PORT = Number(env?.SMTP_PORT || env?.GMAIL_SMTP_PORT || 587)
+  const SMTP_FROM = env?.SMTP_FROM || SMTP_USER
+
+  if (!SMTP_USER || !SMTP_PASSWORD) {
+    throw new Error("SMTP credentials not configured")
+  }
+
+  return { SMTP_USER, SMTP_PASSWORD, SMTP_HOST, SMTP_PORT, SMTP_FROM }
+}
+
+const validateEmailRequest = (body: EmailRequest) => {
+  if (!body.to || !body.subject || (!body.html && !body.text)) {
+    throw new Error("to, subject, and html/text are required")
+  }
+
+  const recipients = normalizeEmails(body.to)
+  const ccList = body.cc ? normalizeEmails(body.cc) : []
+  const bccList = body.bcc ? normalizeEmails(body.bcc) : []
+
+  const allEmails = [...recipients, ...ccList, ...bccList]
+  for (const email of allEmails) {
+    if (!validateEmail(email)) {
+      throw new Error(`Invalid email format: ${email}`)
+    }
   }
 }
 
 serve(async (req: any) => {
-  // Handle CORS preflight
-  const corsPreFlight = handleCorsPreFlight(req)
-  if (corsPreFlight) return corsPreFlight
-
-  const origin = req.headers.get('origin')
-  const corsHeaders = getCorsHeaders(origin)
-
   try {
+    // Handle CORS preflight
+    const corsPreFlight = handleCorsPreFlight(req)
+    if (corsPreFlight) return corsPreFlight
+
+    const origin = req.headers.get('origin')
+    const corsHeaders = getCorsHeaders(origin)
+
     // 1. AUTHENTICATION CHECK
     const { user, error: authError, status: authStatus } = await authenticateRequest(req)
     if (authError) {
@@ -97,64 +128,24 @@ serve(async (req: any) => {
     console.log(`[send-email] User ${user.email} (${user.id}) is sending an email`)
 
     // 2. PROCEED TO SMTP LOGIC
-    // @ts-ignore
-    const env = (globalThis as any).Deno?.env?.toObject() || {}
-    const SMTP_USER = env?.SMTP_USER || env?.GMAIL_SMTP_USER
-    const SMTP_PASSWORD = env?.SMTP_PASSWORD || env?.GMAIL_SMTP_PASSWORD
-    const SMTP_HOST = env?.SMTP_HOST || env?.GMAIL_SMTP_HOST || "smtp.gmail.com"
-    const SMTP_PORT = Number(env?.SMTP_PORT || env?.GMAIL_SMTP_PORT || 587)
-    const SMTP_FROM = env?.SMTP_FROM || SMTP_USER
-
-    if (!SMTP_USER || !SMTP_PASSWORD) {
-      console.error("SMTP credentials not configured")
-      return new Response(
-        JSON.stringify({
-          error: "Email service not configured",
-          message: "SMTP_USER and SMTP_PASSWORD environment variables are required",
-        }),
-        { status: 500, headers: corsHeaders }
-      )
-    }
+    const envVars = getEnvVars()
 
     const body: EmailRequest = await req.json()
-    const { to, cc, bcc, subject, html, text, from } = body
-
-    // Validate required fields
-    if (!to || !subject || (!html && !text)) {
-      return new Response(
-        JSON.stringify({
-          error: "Invalid request",
-          message: "to, subject, and html/text are required",
-        }),
-        { status: 400, headers: corsHeaders }
-      )
-    }
-
-    // Normalize email arrays
-    const recipients = normalizeEmails(to)
-    const ccList = cc ? normalizeEmails(cc) : []
-    const bccList = bcc ? normalizeEmails(bcc) : []
-
-    // Validate email format
-    const allEmails = [...recipients, ...ccList, ...bccList]
-    for (const email of allEmails) {
-      if (!validateEmail(email)) {
-        return new Response(
-          JSON.stringify({ error: "Invalid email format", email }),
-          { status: 400, headers: corsHeaders }
-        )
-      }
-    }
+    validateEmailRequest(body)
 
     // Create SMTP client
     const client = createSmtpClient()
 
     try {
       // Connect to Gmail SMTP server
-      await connectToSmtpServer(client, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD)
+      await connectToSmtpServer(client, envVars.SMTP_HOST, envVars.SMTP_PORT, envVars.SMTP_USER, envVars.SMTP_PASSWORD)
 
       // Send email
-      await sendEmail(client, from || SMTP_FROM, recipients, ccList.length > 0 ? ccList : undefined, bccList.length > 0 ? bccList : undefined, subject, text || "", html)
+      const recipients = normalizeEmails(body.to)
+      const ccList = body.cc ? normalizeEmails(body.cc) : undefined
+      const bccList = body.bcc ? normalizeEmails(body.bcc) : undefined
+
+      await sendEmail(client, body.from || envVars.SMTP_FROM, recipients, ccList, bccList, body.subject, body.text || "", body.html)
 
       // Close connection
       await closeSmtpConnection(client)
@@ -209,4 +200,3 @@ serve(async (req: any) => {
     )
   }
 })
-```
