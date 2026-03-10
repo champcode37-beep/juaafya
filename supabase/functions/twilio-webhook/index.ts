@@ -16,11 +16,15 @@ serve(async (req: any) => {
 
   const origin = req.headers.get('origin')
   const corsHeaders = getCorsHeaders(origin)
+
   try {
+    // Extract environment variables
     const env = globalThis as any
     const TW_AUTH = env?.TWILIO_AUTH_TOKEN
     const SUPABASE_URL = env?.SUPABASE_URL
     const SERVICE_KEY = env?.SUPABASE_SERVICE_ROLE_KEY
+
+    // Validate required environment variables
     if (!TW_AUTH) {
       return new Response(JSON.stringify({ error: 'TWILIO_AUTH_TOKEN not configured' }), { status: 500 })
     }
@@ -28,18 +32,19 @@ serve(async (req: any) => {
       console.warn('Supabase not configured; webhook will only validate signature')
     }
 
+    // Validate request headers
     const sigHeader = req.headers.get('x-twilio-signature') || ''
     const url = req.url
     const contentType = req.headers.get('content-type') || ''
 
+    // Read request body
     const bodyText = await req.text()
 
-    // Parse body params (Twilio sends application/x-www-form-urlencoded)
+    // Parse request body parameters
     const params = new URLSearchParams(bodyText)
 
     // Build the expected signature base string: URL + sorted params concatenated
     let base = url
-    // Twilio requires parameters sorted by key
     const keys = Array.from(params.keys()).sort()
     for (const k of keys) {
       base += k + params.get(k)
@@ -54,25 +59,24 @@ serve(async (req: any) => {
     for (let i = 0; i < sigBytes.length; i++) binary += String.fromCharCode(sigBytes[i])
     const expected = btoa(binary)
 
+    // Validate Twilio signature
     if (sigHeader !== expected) {
       console.warn('Twilio signature mismatch', { received: sigHeader, expected })
       return new Response(JSON.stringify({ error: 'Invalid Twilio signature' }), { status: 403 })
     }
 
-    // Signature valid — extract core fields and forward to whatsapp-action
+    // Signature valid — extract core fields
     const from = params.get('From') || params.get('from') || ''
     const to = params.get('To') || params.get('to') || ''
     const body = params.get('Body') || params.get('body') || ''
     const messageSid = params.get('MessageSid') || params.get('MessageSid') || ''
 
-    // If Supabase configured, check for idempotency (messageSid) then forward to whatsapp-action using service role key
+    // If Supabase configured, forward to whatsapp-action using service role key
     if (SUPABASE_URL && SERVICE_KEY) {
       try {
         // Idempotency: avoid re-processing the same Twilio message (webhooks may retry)
         if (messageSid) {
-          const checkUrl = `${SUPABASE_URL}/rest/v1/inbound_messages?select=id&message_sid=eq.${encodeURIComponent(
-            messageSid,
-          )}`
+          const checkUrl = `${SUPABASE_URL}/rest/v1/inbound_messages?select=id&message_sid=eq.${encodeURIComponent(messageSid)}`
           const checkResp = await fetch(checkUrl, {
             method: 'GET',
             headers: {
@@ -103,9 +107,11 @@ serve(async (req: any) => {
 
         if (!resp.ok) {
           console.error('Failed to forward inbound message to whatsapp-action', await resp.text())
+          return new Response(JSON.stringify({ error: 'Failed to forward inbound message' }), { status: 500 })
         }
       } catch (err) {
         console.error('Error forwarding inbound message to whatsapp-action', err)
+        return new Response(JSON.stringify({ error: 'Error forwarding inbound message' }), { status: 500 })
       }
     }
 

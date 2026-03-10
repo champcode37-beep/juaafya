@@ -1,3 +1,4 @@
+```typescript
 // Supabase Edge Function - send-email
 // Sends emails via Gmail SMTP
 // Required env vars:
@@ -25,6 +26,56 @@ interface EmailRequest {
   html?: string
   text?: string
   from?: string
+}
+
+const validateEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  return emailRegex.test(email)
+}
+
+const normalizeEmails = (emails: string | string[]) => {
+  return Array.isArray(emails) ? emails : [emails]
+}
+
+const createSmtpClient = () => {
+  return new SmtpClient()
+}
+
+const connectToSmtpServer = async (client: SmtpClient, host: string, port: number, username: string, password: string) => {
+  try {
+    await client.connectTLS({
+      hostname: host,
+      port: port,
+      username: username,
+      password: password,
+    })
+  } catch (error) {
+    throw new Error(`Failed to connect to SMTP server: ${error.message}`)
+  }
+}
+
+const sendEmail = async (client: SmtpClient, from: string, to: string[], cc: string[] | undefined, bcc: string[] | undefined, subject: string, text: string, html: string | undefined) => {
+  try {
+    await client.send({
+      from: from,
+      to: to,
+      cc: cc?.length > 0 ? cc : undefined,
+      bcc: bcc?.length > 0 ? bcc : undefined,
+      subject: subject,
+      content: text,
+      html: html,
+    })
+  } catch (error) {
+    throw new Error(`Failed to send email: ${error.message}`)
+  }
+}
+
+const closeSmtpConnection = async (client: SmtpClient) => {
+  try {
+    await client.close()
+  } catch (error) {
+    throw new Error(`Failed to close SMTP connection: ${error.message}`)
+  }
 }
 
 serve(async (req: any) => {
@@ -80,15 +131,14 @@ serve(async (req: any) => {
     }
 
     // Normalize email arrays
-    const recipients = Array.isArray(to) ? to : [to]
-    const ccList = cc ? (Array.isArray(cc) ? cc : [cc]) : []
-    const bccList = bcc ? (Array.isArray(bcc) ? bcc : [bcc]) : []
+    const recipients = normalizeEmails(to)
+    const ccList = cc ? normalizeEmails(cc) : []
+    const bccList = bcc ? normalizeEmails(bcc) : []
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     const allEmails = [...recipients, ...ccList, ...bccList]
     for (const email of allEmails) {
-      if (!emailRegex.test(email)) {
+      if (!validateEmail(email)) {
         return new Response(
           JSON.stringify({ error: "Invalid email format", email }),
           { status: 400, headers: corsHeaders }
@@ -97,29 +147,17 @@ serve(async (req: any) => {
     }
 
     // Create SMTP client
-    const client = new SmtpClient()
+    const client = createSmtpClient()
 
     try {
       // Connect to Gmail SMTP server
-      await client.connectTLS({
-        hostname: SMTP_HOST,
-        port: SMTP_PORT,
-        username: SMTP_USER,
-        password: SMTP_PASSWORD,
-      })
+      await connectToSmtpServer(client, SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD)
 
-      await client.send({
-        from: from || SMTP_FROM,
-        to: recipients,
-        cc: ccList.length > 0 ? ccList : undefined,
-        bcc: bccList.length > 0 ? bccList : undefined,
-        subject: subject,
-        content: text || "",
-        html: html,
-      })
+      // Send email
+      await sendEmail(client, from || SMTP_FROM, recipients, ccList.length > 0 ? ccList : undefined, bccList.length > 0 ? bccList : undefined, subject, text || "", html)
 
       // Close connection
-      await client.close()
+      await closeSmtpConnection(client)
 
       console.log(`Email sent successfully to ${recipients.join(", ")}`)
 
@@ -131,19 +169,19 @@ serve(async (req: any) => {
         }),
         { status: 200, headers: corsHeaders }
       )
-    } catch (smtpError) {
-      console.error("SMTP error:", smtpError)
+    } catch (error) {
+      console.error("SMTP error:", error)
 
       // If SMTP fails, try to provide helpful error message
       let errorMessage = "Failed to send email via SMTP"
 
-      if (smtpError instanceof Error) {
-        if (smtpError.message.includes("authentication failed")) {
+      if (error instanceof Error) {
+        if (error.message.includes("authentication failed")) {
           errorMessage = "SMTP authentication failed. Check credentials."
-        } else if (smtpError.message.includes("connection refused")) {
+        } else if (error.message.includes("connection refused")) {
           errorMessage = "SMTP server connection failed"
         } else {
-          errorMessage = smtpError.message
+          errorMessage = error.message
         }
       }
 
@@ -171,3 +209,4 @@ serve(async (req: any) => {
     )
   }
 })
+```
