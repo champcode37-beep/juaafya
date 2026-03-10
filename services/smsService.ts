@@ -82,6 +82,16 @@ export async function sendSMS(options: SMSOptions): Promise<SMSResponse> {
 }
 
 /**
+ * Validate phone number as E.164 format
+ * @param phoneNumber 
+ * @returns 
+ */
+function validatePhoneNumber(phoneNumber: string): boolean {
+  const phoneRegex = /^\+[1-9]\d{1,14}$/
+  return phoneRegex.test(phoneNumber)
+}
+
+/**
  * Send appointment reminder SMS
  */
 export async function sendAppointmentReminderSMS(
@@ -126,6 +136,15 @@ export async function sendNotificationSMS(
   phoneNumber: string,
   message: string,
 ): Promise<SMSResponse> {
+  if (!validatePhoneNumber(phoneNumber)) {
+    logger.error('Invalid phone number format:', phoneNumber)
+    return {
+      success: false,
+      message: 'Invalid phone number format',
+      error: 'Invalid phone number format'
+    }
+  }
+
   return sendSMS({
     phone_number: phoneNumber,
     message,
@@ -141,6 +160,15 @@ export async function sendLabResultsSMS(
   testName: string,
   clinicName: string,
 ): Promise<SMSResponse> {
+  if (!validatePhoneNumber(phoneNumber)) {
+    logger.error('Invalid phone number format:', phoneNumber)
+    return {
+      success: false,
+      message: 'Invalid phone number format',
+      error: 'Invalid phone number format'
+    }
+  }
+
   const message = `Hi ${patientName}, your ${testName} lab results are ready at ${clinicName}. Please contact us for details.`
 
   return sendSMS({
@@ -159,6 +187,15 @@ export async function sendPaymentReminderSMS(
   dueDate: string,
   clinicName: string,
 ): Promise<SMSResponse> {
+  if (!validatePhoneNumber(phoneNumber)) {
+    logger.error('Invalid phone number format:', phoneNumber)
+    return {
+      success: false,
+      message: 'Invalid phone number format',
+      error: 'Invalid phone number format'
+    }
+  }
+
   const message = `Hi ${patientName}, payment reminder: KSh ${amount} due by ${dueDate} at ${clinicName}.`
 
   return sendSMS({
