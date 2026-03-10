@@ -48,6 +48,9 @@ async function callMobiwaveEdgeFunction(action: string, payload: any): Promise<M
 export const mobiwaveService = {
     // --- SMS API ---
     sendSMS: async (recipient: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
+        if (typeof recipient !== 'string' || typeof message !== 'string') {
+            return { status: 'error', message: 'Recipient and message must be strings' };
+        }
         if (!recipient || !message) {
             return { status: 'error', message: 'Recipient and message are required' };
         }
@@ -60,6 +63,9 @@ export const mobiwaveService = {
     },
 
     sendCampaign: async (contactListId: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
+        if (typeof contactListId !== 'string' || typeof message !== 'string') {
+            return { status: 'error', message: 'Contact list ID and message must be strings' };
+        }
         if (!contactListId || !message) {
             return { status: 'error', message: 'Contact list ID and message are required' };
         }
@@ -73,6 +79,9 @@ export const mobiwaveService = {
 
     // --- Contacts API ---
     getContactsInGroup: async (groupId: string): Promise<MobiwaveResponse> => {
+        if (typeof groupId !== 'string') {
+            return { status: 'error', message: 'Group ID must be a string' };
+        }
         if (!groupId) {
             return { status: 'error', message: 'Group ID is required' };
         }
@@ -80,6 +89,9 @@ export const mobiwaveService = {
     },
 
     storeContact: async (groupId: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
+        if (typeof groupId !== 'string' || typeof phone !== 'string') {
+            return { status: 'error', message: 'Group ID and phone must be strings' };
+        }
         if (!groupId || !phone) {
             return { status: 'error', message: 'Group ID and phone are required' };
         }
@@ -92,6 +104,9 @@ export const mobiwaveService = {
     },
 
     updateContact: async (groupId: string, contactUid: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
+        if (typeof groupId !== 'string' || typeof contactUid !== 'string' || typeof phone !== 'string') {
+            return { status: 'error', message: 'Group ID, contact UID, and phone must be strings' };
+        }
         if (!groupId || !contactUid || !phone) {
             return { status: 'error', message: 'Group ID, contact UID, and phone are required' };
         }
@@ -105,6 +120,9 @@ export const mobiwaveService = {
     },
 
     deleteContact: async (groupId: string, contactUid: string): Promise<MobiwaveResponse> => {
+        if (typeof groupId !== 'string' || typeof contactUid !== 'string') {
+            return { status: 'error', message: 'Group ID and contact UID must be strings' };
+        }
         if (!groupId || !contactUid) {
             return { status: 'error', message: 'Group ID and contact UID are required' };
         }
@@ -117,6 +135,9 @@ export const mobiwaveService = {
     },
 
     storeGroup: async (name: string): Promise<MobiwaveResponse> => {
+        if (typeof name !== 'string') {
+            return { status: 'error', message: 'Name must be a string' };
+        }
         if (!name) {
             return { status: 'error', message: 'Name is required' };
         }
@@ -124,6 +145,9 @@ export const mobiwaveService = {
     },
 
     deleteGroup: async (groupId: string): Promise<MobiwaveResponse> => {
+        if (typeof groupId !== 'string') {
+            return { status: 'error', message: 'Group ID must be a string' };
+        }
         if (!groupId) {
             return { status: 'error', message: 'Group ID is required' };
         }
