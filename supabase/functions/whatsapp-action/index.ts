@@ -10,100 +10,108 @@ declare const Deno: any;
 
 // Function to call Gemini (Simulating geminiService logic in Deno)
 async function getAIResponse(query: string, context: any, supabase: any) {
-  const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
-  if (!GEMINI_API_KEY) throw new Error("Gemini API Key not set");
+  try {
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY');
+    if (!GEMINI_API_KEY) throw new Error("Gemini API Key not set");
 
-  // Reconstruct the logic from geminiService.ts but adapted for Deno
-  // We construct the prompt exactly as we did in the frontend service
-  const userRole = context.userRole || 'Receptionist';
+    // Reconstruct the logic from geminiService.ts but adapted for Deno
+    // We construct the prompt exactly as we did in the frontend service
+    const userRole = context.userRole || 'Receptionist';
 
-  // Define available data based on Role
-  let dataContext = `
-        - Patients: ${JSON.stringify(context.patients || [])}
-        - Appointments: ${JSON.stringify(context.appointments || [])}
-        - Today: ${context.today}
-    `;
+    // Define available data based on Role
+    let dataContext = `
+          - Patients: ${JSON.stringify(context.patients || [])}
+          - Appointments: ${JSON.stringify(context.appointments || [])}
+          - Today: ${context.today}
+      `;
 
-  // Add sensitive data only for permitted roles
-  if (['Admin', 'SuperAdmin', 'Doctor', 'Pharmacist'].includes(userRole)) {
-    dataContext += `\n- Inventory: ${JSON.stringify(context.inventory || [])}`;
-  }
-  if (['Admin', 'SuperAdmin', 'Accountant'].includes(userRole)) {
-    dataContext += `\n- Billing/Transactions: ${JSON.stringify(context.transactions || [])}`;
-    dataContext += `\n- Revenue Stats: ${JSON.stringify(context.revenue || {})}`;
-  }
-
-  // Define Actions based on Role (Matches geminiService.ts)
-  let actions = `
-        - ADD_PATIENT: payload { name, phone, age, gender (Male/Female) }
-        - EDIT_PATIENT: payload { patientId, updates: { name?, phone?, age?, gender?, notes? } }
-        - ADD_APPOINTMENT: payload { patientId, date (YYYY-MM-DD), time (HH:MM), reason }
-        - CANCEL_APPOINTMENT: payload { appointmentId }
-    `;
-
-  if (['Admin', 'SuperAdmin', 'Pharmacist'].includes(userRole)) {
-    actions += `
-        - UPDATE_STOCK: payload { itemId or itemName, newQuantity }
-        - DELETE_ITEM: payload { itemId or itemName }`;
-  }
-
-  if (['Admin', 'SuperAdmin', 'Accountant'].includes(userRole)) {
-    actions += `
-        - GENERATE_INVOICE: payload { patientId, amount, description }
-        - RECORD_PAYMENT: payload { invoiceId, amount, method }
-        - CHECK_REVENUE: payload { period (daily/monthly/yearly) }`;
-  }
-
-  const payload = {
-    contents: [{
-      parts: [{
-        text: `You are the 'Candy', the AI Assistant for ${context.clinicName || "the clinic"}.
-                User Role: ${userRole}.
-                
-                Current Data Context (Filtered by Role):
-                ${dataContext}
-
-                User Query: "${query}"
-
-                INSTRUCTIONS:
-                1. You must respond in valid JSON format ONLY. Do not include markdown blocks.
-                2. Structure: { "reply": "string", "action": { "type": "string", "payload": object } | null }
-                3. If the user asks a question, answer in 'reply' and set 'action' to null.
-                4. If the user wants to perform an action, ensure they have permission (implied by the list below). If they try to do something not listed, deny politely.
-                5. If the user asks for "billing" or "payment" info and you have access, summarize it.
-
-                AVAILABLE ACTIONS (Strictly enforced):
-                ${actions}
-
-                RULES:
-                - Prioritize brevity in 'reply'. Use bullet points for lists. No emojis.
-                - If details are missing for an action, ask the user for them and set 'action' to null.
-                - Infer dates like 'tomorrow' based on ${context.today}.
-                `
-      }]
-    }],
-    generationConfig: {
-      temperature: 0.2,
-      maxOutputTokens: 1024,
-      responseMimeType: "application/json"
+    // Add sensitive data only for permitted roles
+    if (['Admin', 'SuperAdmin', 'Doctor', 'Pharmacist'].includes(userRole)) {
+      dataContext += `\n- Inventory: ${JSON.stringify(context.inventory || [])}`;
     }
-  };
+    if (['Admin', 'SuperAdmin', 'Accountant'].includes(userRole)) {
+      dataContext += `\n- Billing/Transactions: ${JSON.stringify(context.transactions || [])}`;
+      dataContext += `\n- Revenue Stats: ${JSON.stringify(context.revenue || {})}`;
+    }
 
-  const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(payload)
-  });
+    // Define Actions based on Role (Matches geminiService.ts)
+    let actions = `
+          - ADD_PATIENT: payload { name, phone, age, gender (Male/Female) }
+          - EDIT_PATIENT: payload { patientId, updates: { name?, phone?, age?, gender?, notes? } }
+          - ADD_APPOINTMENT: payload { patientId, date (YYYY-MM-DD), time (HH:MM), reason }
+          - CANCEL_APPOINTMENT: payload { appointmentId }
+      `;
 
-  const data = await response.json();
-  if (data.error) throw new Error(data.error.message);
+    if (['Admin', 'SuperAdmin', 'Pharmacist'].includes(userRole)) {
+      actions += `
+          - UPDATE_STOCK: payload { itemId or itemName, newQuantity }
+          - DELETE_ITEM: payload { itemId or itemName }`;
+    }
 
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error("No response from Gemini");
+    if (['Admin', 'SuperAdmin', 'Accountant'].includes(userRole)) {
+      actions += `
+          - GENERATE_INVOICE: payload { patientId, amount, description }
+          - RECORD_PAYMENT: payload { invoiceId, amount, method }
+          - CHECK_REVENUE: payload { period (daily/monthly/yearly) }`;
+    }
 
-  return JSON.parse(text);
+    const payload = {
+      contents: [{
+        parts: [{
+          text: `You are the 'Candy', the AI Assistant for ${context.clinicName || "the clinic"}.
+                    User Role: ${userRole}.
+                    
+                    Current Data Context (Filtered by Role):
+                    ${dataContext}
+
+                    User Query: "${query}"
+
+                    INSTRUCTIONS:
+                    1. You must respond in valid JSON format ONLY. Do not include markdown blocks.
+                    2. Structure: { "reply": "string", "action": { "type": "string", "payload": object } | null }
+                    3. If the user asks a question, answer in 'reply' and set 'action' to null.
+                    4. If the user wants to perform an action, ensure they have permission (implied by the list below). If they try to do something not listed, deny politely.
+                    5. If the user asks for "billing" or "payment" info and you have access, summarize it.
+
+                    AVAILABLE ACTIONS (Strictly enforced):
+                    ${actions}
+
+                    RULES:
+                    - Prioritize brevity in 'reply'. Use bullet points for lists. No emojis.
+                    - If details are missing for an action, ask the user for them and set 'action' to null.
+                    - Infer dates like 'tomorrow' based on ${context.today}.
+                    `
+        }]
+      }],
+      generationConfig: {
+        temperature: 0.2,
+        maxOutputTokens: 1024,
+        responseMimeType: "application/json"
+      }
+    };
+
+    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(payload)
+    });
+
+    const data = await response.json();
+    if (data.error) throw new Error(data.error.message);
+
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error("No response from Gemini");
+
+    return JSON.parse(text);
+  } catch (error: any) {
+    console.error("AI Response Error:", error);
+    return {
+      reply: "Error occurred while processing your request.",
+      action: null
+    };
+  }
 }
 
 
@@ -190,7 +198,7 @@ serve(async (req: Request) => {
     context.appointments = appointments;
 
     // RBAC Data Fetching
-    if (['Admin', 'SuperAdmin', 'Accoutant'].includes(role)) {
+    if (['Admin', 'SuperAdmin', 'Accountant'].includes(role)) {
       // Fetch Revenue
       const { data: rev } = await supabase.from('visits').select('total_bill').eq('payment_status', 'Paid').gte('start_time', today);
       context.revenue = { today: rev?.reduce((a: any, b: any) => a + b.total_bill, 0) || 0 };
@@ -270,24 +278,28 @@ serve(async (req: Request) => {
 });
 
 async function sendWhatsAppMessage(to: string, text: string) {
-  const WHATSAPP_PHONE_ID = Deno.env.get("WHATSAPP_PHONE_ID");
-  const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
+  try {
+    const WHATSAPP_PHONE_ID = Deno.env.get("WHATSAPP_PHONE_ID");
+    const WHATSAPP_ACCESS_TOKEN = Deno.env.get("WHATSAPP_ACCESS_TOKEN");
 
-  if (!WHATSAPP_PHONE_ID || !WHATSAPP_ACCESS_TOKEN) {
-    console.error("WhatsApp credentials missing");
-    return;
+    if (!WHATSAPP_PHONE_ID || !WHATSAPP_ACCESS_TOKEN) {
+      console.error("WhatsApp credentials missing");
+      return;
+    }
+
+    await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_ID}/messages`, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        messaging_product: "whatsapp",
+        to: to,
+        text: { body: text },
+      }),
+    });
+  } catch (error: any) {
+    console.error("WhatsApp Message Error:", error);
   }
-
-  await fetch(`https://graph.facebook.com/v17.0/${WHATSAPP_PHONE_ID}/messages`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${WHATSAPP_ACCESS_TOKEN}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      messaging_product: "whatsapp",
-      to: to,
-      text: { body: text },
-    }),
-  });
 }
