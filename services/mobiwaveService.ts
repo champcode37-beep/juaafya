@@ -1,4 +1,3 @@
-
 const API_BASE_URL = 'https://sms.mobiwave.co.ke/api/v3';
 
 // NOTE: Mobiwave API calls should be made through Supabase Edge Functions
@@ -35,8 +34,13 @@ async function callMobiwaveEdgeFunction(action: string, payload: any): Promise<M
             return { status: 'error', message: error.message };
         }
 
-        return data || { status: 'error', message: 'No response from server' };
+        if (!data) {
+            return { status: 'error', message: 'No response from server' };
+        }
+
+        return data;
     } catch (error) {
+        console.error('Error calling Mobiwave Edge Function:', error);
         return { status: 'error', message: String(error) };
     }
 }
@@ -44,6 +48,9 @@ async function callMobiwaveEdgeFunction(action: string, payload: any): Promise<M
 export const mobiwaveService = {
     // --- SMS API ---
     sendSMS: async (recipient: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
+        if (!recipient || !message) {
+            return { status: 'error', message: 'Recipient and message are required' };
+        }
         return callMobiwaveEdgeFunction('sendSMS', {
             recipient,
             sender_id: senderId,
@@ -53,6 +60,9 @@ export const mobiwaveService = {
     },
 
     sendCampaign: async (contactListId: string, message: string, senderId: string = 'JuaAfya'): Promise<MobiwaveResponse> => {
+        if (!contactListId || !message) {
+            return { status: 'error', message: 'Contact list ID and message are required' };
+        }
         return callMobiwaveEdgeFunction('sendCampaign', {
             contact_list_id: contactListId,
             sender_id: senderId,
@@ -63,10 +73,16 @@ export const mobiwaveService = {
 
     // --- Contacts API ---
     getContactsInGroup: async (groupId: string): Promise<MobiwaveResponse> => {
+        if (!groupId) {
+            return { status: 'error', message: 'Group ID is required' };
+        }
         return callMobiwaveEdgeFunction('getContactsInGroup', { groupId });
     },
 
     storeContact: async (groupId: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
+        if (!groupId || !phone) {
+            return { status: 'error', message: 'Group ID and phone are required' };
+        }
         return callMobiwaveEdgeFunction('storeContact', {
             groupId,
             phone,
@@ -76,6 +92,9 @@ export const mobiwaveService = {
     },
 
     updateContact: async (groupId: string, contactUid: string, phone: string, firstName?: string, lastName?: string): Promise<MobiwaveResponse> => {
+        if (!groupId || !contactUid || !phone) {
+            return { status: 'error', message: 'Group ID, contact UID, and phone are required' };
+        }
         return callMobiwaveEdgeFunction('updateContact', {
             groupId,
             contactUid,
@@ -86,6 +105,9 @@ export const mobiwaveService = {
     },
 
     deleteContact: async (groupId: string, contactUid: string): Promise<MobiwaveResponse> => {
+        if (!groupId || !contactUid) {
+            return { status: 'error', message: 'Group ID and contact UID are required' };
+        }
         return callMobiwaveEdgeFunction('deleteContact', { groupId, contactUid });
     },
 
@@ -95,10 +117,16 @@ export const mobiwaveService = {
     },
 
     storeGroup: async (name: string): Promise<MobiwaveResponse> => {
+        if (!name) {
+            return { status: 'error', message: 'Name is required' };
+        }
         return callMobiwaveEdgeFunction('storeGroup', { name });
     },
 
     deleteGroup: async (groupId: string): Promise<MobiwaveResponse> => {
+        if (!groupId) {
+            return { status: 'error', message: 'Group ID is required' };
+        }
         return callMobiwaveEdgeFunction('deleteGroup', { groupId });
     },
 };
