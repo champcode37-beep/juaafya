@@ -81,7 +81,7 @@ export const teamService = {
         return teamMembers;
       }
     } catch (error) {
-      console.error('[teamService] Error loading team members:', error);
+      logger.error('[teamService] Error loading team members:', error);
       return [];
     }
   },
@@ -104,7 +104,7 @@ export const teamService = {
 
       return mapUserToTeamMember(user);
     } catch (error) {
-      console.error('[teamService] Error loading team member:', error);
+      logger.error('[teamService] Error loading team member:', error);
       return null;
     }
   },
