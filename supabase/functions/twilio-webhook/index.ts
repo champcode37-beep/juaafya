@@ -26,7 +26,10 @@ serve(async (req: any) => {
 
     // Validate required environment variables
     if (!TW_AUTH) {
-      return new Response(JSON.stringify({ error: 'TWILIO_AUTH_TOKEN not configured' }), { status: 500 })
+      return new Response(JSON.stringify({ error: 'TWILIO_AUTH_TOKEN not configured' }), { 
+        status: 500,
+        headers: corsHeaders
+      })
     }
     if (!SUPABASE_URL || !SERVICE_KEY) {
       console.warn('Supabase not configured; webhook will only validate signature')
@@ -62,7 +65,10 @@ serve(async (req: any) => {
     // Validate Twilio signature
     if (sigHeader !== expected) {
       console.warn('Twilio signature mismatch', { received: sigHeader, expected })
-      return new Response(JSON.stringify({ error: 'Invalid Twilio signature' }), { status: 403 })
+      return new Response(JSON.stringify({ error: 'Invalid Twilio signature' }), { 
+        status: 403,
+        headers: corsHeaders
+      })
     }
 
     // Signature valid — extract core fields
@@ -90,7 +96,10 @@ serve(async (req: any) => {
             const existing = await checkResp.json()
             if (Array.isArray(existing) && existing.length > 0) {
               console.log('Duplicate inbound message, skipping processing for', messageSid)
-              return new Response('', { status: 200 })
+              return new Response('', { 
+                status: 200,
+                headers: corsHeaders
+              })
             }
           }
         }
@@ -107,17 +116,29 @@ serve(async (req: any) => {
 
         if (!resp.ok) {
           console.error('Failed to forward inbound message to whatsapp-action', await resp.text())
-          return new Response(JSON.stringify({ error: 'Failed to forward inbound message' }), { status: 500 })
+          return new Response(JSON.stringify({ error: 'Failed to forward inbound message' }), { 
+            status: 500,
+            headers: corsHeaders
+          })
         }
       } catch (err) {
         console.error('Error forwarding inbound message to whatsapp-action', err)
-        return new Response(JSON.stringify({ error: 'Error forwarding inbound message' }), { status: 500 })
+        return new Response(JSON.stringify({ error: 'Error forwarding inbound message' }), { 
+          status: 500,
+          headers: corsHeaders
+        })
       }
     }
 
-    return new Response('', { status: 200 })
+    return new Response('', { 
+      status: 200,
+      headers: corsHeaders
+    })
   } catch (err) {
     console.error('twilio-webhook error', err)
-    return new Response(JSON.stringify({ error: (err as any)?.message || String(err) }), { status: 500 })
+    return new Response(JSON.stringify({ error: (err as any)?.message || String(err) }), { 
+      status: 500,
+      headers: corsHeaders
+    })
   }
 })
