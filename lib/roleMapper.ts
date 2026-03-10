@@ -7,7 +7,8 @@ import { LEGACY_ROLE_MAP } from '../types/enterprise'
 
 export function mapRoleToUserRole(role?: string): UserRole | undefined {
   if (!role) return undefined
-  const mappedRole = LEGACY_ROLE_MAP[role] || LEGACY_ROLE_MAP[role.toLowerCase()]
+  const roleLookup = role.toLowerCase()
+  const mappedRole = LEGACY_ROLE_MAP[roleLookup] || LEGACY_ROLE_MAP[role]
   return mappedRole
 }
 
@@ -25,7 +26,7 @@ export function canCurrentUser(permission: string): boolean {
     if (!currentUser || !currentUser.role) return false
     const userRole = mapRoleToUserRole(currentUser.role)
     if (!userRole) return false
-    return hasPermission(userRole as UserRole, permission as any)
+    return hasPermission(userRole as UserRole, permission)
   } catch (error) {
     console.error('Error checking current user permission', error)
     return false
