@@ -15,42 +15,52 @@ injectSpeedInsights();
 // Using `logger.warn` keeps warnings subject to `VERBOSE` flag.
 if (typeof window !== 'undefined') {
   const originalWarn = console.warn.bind(console);
+  const originalError = console.error.bind(console);
+
+  const suppressWarnings = (args: any[]) => {
+    const firstArg = args[0];
+    if (typeof firstArg === 'string') {
+      const lowerArg = firstArg.toLowerCase();
+      // Suppress Recharts dimension warnings
+      if (lowerArg.includes('width') && lowerArg.includes('height')) return true;
+      // Suppress non-actionable host/insights warnings from browser extensions/internal modules
+      if (lowerArg.includes('host validation') || lowerArg.includes('host is not supported')) return true;
+      if (lowerArg.includes('insights whitelist')) return true;
+    }
+    return false;
+  };
+
+  const suppressErrors = (args: any[]) => {
+    const firstArg = args[0];
+    if (typeof firstArg === 'string') {
+      const lowerArg = firstArg.toLowerCase();
+      // Suppress non-actionable host errors
+      if (lowerArg.includes('host validation') || lowerArg.includes('host is not supported')) return true;
+      if (lowerArg.includes('insights whitelist')) return true;
+      // Suppress expected Supabase auth token errors (handled by redirect to login)
+      if (lowerArg.includes('invalid refresh token') || lowerArg.includes('refresh token not found')) return true;
+      // Suppress SES intrinsics warning from lockdown (usually from a library like Agaroot)
+      if (lowerArg.includes('ses removing unpermitted intrinsics')) return true;
+    }
+
+    // Handle Supabase error objects
+    if (typeof firstArg === 'object' && firstArg !== null) {
+      const msg = (firstArg.message || '').toLowerCase();
+      if (msg.includes('invalid refresh token') || msg.includes('refresh token not found')) return true;
+    }
+    return false;
+  };
 
   console.warn = (...args) => {
     try {
-      const firstArg = args[0];
-      if (typeof firstArg === 'string') {
-        const lowerArg = firstArg.toLowerCase();
-        // Suppress Recharts dimension warnings
-        if (lowerArg.includes('width') && lowerArg.includes('height')) return;
-        // Suppress non-actionable host/insights warnings from browser extensions/internal modules
-        if (lowerArg.includes('host validation') || lowerArg.includes('host is not supported')) return;
-        if (lowerArg.includes('insights whitelist')) return;
-      }
+      if (suppressWarnings(args)) return;
     } catch (e) { }
     logger.warn(...args);
   };
 
-  const originalError = console.error.bind(console);
   console.error = (...args) => {
     try {
-      const firstArg = args[0];
-      if (typeof firstArg === 'string') {
-        const lowerArg = firstArg.toLowerCase();
-        // Suppress non-actionable host errors
-        if (lowerArg.includes('host validation') || lowerArg.includes('host is not supported')) return;
-        if (lowerArg.includes('insights whitelist')) return;
-        // Suppress expected Supabase auth token errors (handled by redirect to login)
-        if (lowerArg.includes('invalid refresh token') || lowerArg.includes('refresh token not found')) return;
-        // Suppress SES intrinsics warning from lockdown (usually from a library like Agaroot)
-        if (lowerArg.includes('ses removing unpermitted intrinsics')) return;
-      }
-
-      // Handle Supabase error objects
-      if (typeof firstArg === 'object' && firstArg !== null) {
-        const msg = (firstArg.message || '').toLowerCase();
-        if (msg.includes('invalid refresh token') || msg.includes('refresh token not found')) return;
-      }
+      if (suppressErrors(args)) return;
     } catch (e) { }
     originalError(...args);
   };
