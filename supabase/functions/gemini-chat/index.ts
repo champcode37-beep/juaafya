@@ -44,7 +44,6 @@ async function listAvailableModels(apiKey: string, signal: AbortSignal) {
     const response = await fetch(url, {
         method: 'GET',
         headers: { 'Content-Type': 'application/json' },
-        // @ts-ignore
         signal: signal,
     });
 
@@ -53,7 +52,6 @@ async function listAvailableModels(apiKey: string, signal: AbortSignal) {
 }
 
 async function tryGenerateContent(model: string, payload: any, apiKey: string, signal: AbortSignal) {
-    // Ensure model name doesn't already have 'models/' prefix
     const cleanModelName = model.replace('models/', '');
     const url = `https://generativelanguage.googleapis.com/v1beta/models/${cleanModelName}:generateContent?key=${apiKey}`;
     logMessage(`Attempting request with model: ${cleanModelName}`)
@@ -64,7 +62,6 @@ async function tryGenerateContent(model: string, payload: any, apiKey: string, s
             'Content-Type': 'application/json'
         },
         body: JSON.stringify(payload),
-        // @ts-ignore
         signal: signal,
     });
 
@@ -79,14 +76,13 @@ import { getCorsHeaders, handleCorsPreFlight } from '../_shared/cors.ts'
 
 // @ts-ignore
 Deno.serve(async (req) => {
-    // Handle CORS preflight
-    const corsPreFlight = handleCorsPreFlight(req)
-    if (corsPreFlight) return corsPreFlight
-
-    const origin = req.headers.get('origin')
-    const corsHeaders = getCorsHeaders(origin)
-
     try {
+        const corsPreFlight = handleCorsPreFlight(req)
+        if (corsPreFlight) return corsPreFlight
+
+        const origin = req.headers.get('origin')
+        const corsHeaders = getCorsHeaders(origin)
+
         // 1. AUTHENTICATION CHECK
         const { user, error: authError, status: authStatus } = await authenticateRequest(req)
         if (authError) {
@@ -95,7 +91,6 @@ Deno.serve(async (req) => {
 
         logMessage("Request received from authenticated user: " + user.email)
 
-        // Parse request body
         let body;
         try {
             body = await req.json()
@@ -111,7 +106,6 @@ Deno.serve(async (req) => {
 
         logMessage("Parsing request body...", { model, hasPrompt: !!prompt })
 
-        // Validate request
         if (!prompt && (!history || history.length === 0)) {
             logError("Invalid request: no prompt or history provided")
             return new Response(
@@ -123,8 +117,6 @@ Deno.serve(async (req) => {
             )
         }
 
-        // Get API Key from Environment Variable
-        // @ts-ignore
         const apiKey = (globalThis as any).Deno?.env.get('GEMINI_API_KEY');
 
         if (!apiKey) {
@@ -134,7 +126,7 @@ Deno.serve(async (req) => {
                     "API_KEY_NOT_CONFIGURED",
                     "GEMINI_API_KEY is not configured in environment variables. Please add it via 'supabase secrets set GEMINI_API_KEY=...'"
                 )),
-                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } } // Return 200 to let frontend handle it gracefully
+                { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } } 
             )
         }
 
@@ -143,7 +135,7 @@ Deno.serve(async (req) => {
         const payload: any = {
             contents: [
                 ...(history || []).map((msg: any) => ({
-                    role: msg.role === 'admin' ? 'model' : msg.role, // Map common roles
+                    role: msg.role === 'admin' ? 'model' : msg.role,
                     parts: [{ text: msg.text || msg.parts?.[0]?.text }]
                 }))
             ],
@@ -160,7 +152,6 @@ Deno.serve(async (req) => {
         }
 
         if (systemInstruction) {
-            // gemini-1.5-pro-latest and gemini-2.0-flash support system_instruction
             payload.systemInstruction = {
                 parts: [{ text: systemInstruction }]
             };
@@ -170,9 +161,7 @@ Deno.serve(async (req) => {
             payload.generationConfig.responseMimeType = "application/json";
         }
 
-        // Define fallback models
         const requestedModel = model || "gemini-1.5-flash";
-        // Order of fallback: requested -> latest aliases -> specific versions -> old pro
         const fallbackModels = [
             requestedModel,
             "gemini-2.0-flash-exp",
@@ -185,21 +174,17 @@ Deno.serve(async (req) => {
             "gemini-1.0-pro"
         ];
 
-        // Remove duplicates
         const uniqueModels = [...new Set(fallbackModels)];
 
         let lastError = null;
         let successResponse = null;
 
-        // Add timeout for Gemini API call (60 seconds - increased for multiple retries)
         const controller = new AbortController()
         const timeoutId = setTimeout(() => controller.abort(), 60000)
 
-        // Track tried models to avoid retrying them if found dynamically later
         const triedModels = new Set();
 
         try {
-            // 1. Try Hardcoded Models
             for (const modelName of uniqueModels) {
                 if (!modelName) continue;
                 triedModels.add(modelName);
@@ -223,7 +208,6 @@ Deno.serve(async (req) => {
                 }
             }
 
-            // 2. If all hardcoded models fail, try to dynamically list models
             if (!successResponse) {
                 logMessage("All legacy fallback models failed. Attempting to list available models from API...");
 
@@ -234,18 +218,16 @@ Deno.serve(async (req) => {
                         const availableModels = listData.models
                             .filter((m: any) => m.supportedGenerationMethods?.includes("generateContent"))
                             .map((m: any) => m.name.replace('models/', ''))
-                            .filter((name: string) => !triedModels.has(name)); // Only try new ones
+                            .filter((name: string) => !triedModels.has(name));
 
                         logMessage(`Found ${availableModels.length} new available models: ${availableModels.join(', ')}`);
 
-                        // Sort to prefer "flash" or "pro" models
                         availableModels.sort((a: string, b: string) => {
                             if (a.includes('flash') && !b.includes('flash')) return -1;
                             if (b.includes('flash') && !a.includes('flash')) return 1;
                             return 0;
                         });
 
-                        // Try the dynamic models
                         for (const modelName of availableModels) {
                             logMessage(`Trying dynamic model: ${modelName}`);
                             try {
@@ -255,7 +237,6 @@ Deno.serve(async (req) => {
                                     successResponse = { response, data };
                                     break;
                                 } else {
-                                    // Log but keep trying
                                     const errorMessage = data.error?.message || data.error || response.statusText;
                                     logMessage(`Dynamic model ${modelName} failed: ${errorMessage}`);
                                 }
@@ -280,7 +261,6 @@ Deno.serve(async (req) => {
 
         if (successResponse) {
             const { data } = successResponse;
-            // Extract text from response
             const text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
             if (!text) {
@@ -302,11 +282,10 @@ Deno.serve(async (req) => {
             )
         }
 
-        // If we get here, absolutely everything failed
         logError("All models (static and dynamic) failed.");
 
         const errorMessage = lastError?.data?.error?.message || lastError?.error?.message || "Available models failed to respond";
-        const errorDetails = lastError?.data?.error // Include full error object
+        const errorDetails = lastError?.data?.error
 
         return new Response(
             JSON.stringify(createErrorResponse(
@@ -320,7 +299,6 @@ Deno.serve(async (req) => {
     } catch (error: any) {
         logError("Unexpected error in edge function:", error)
 
-        // Determine error type
         let errorType = "UNKNOWN_ERROR"
         let statusCode = 500
 
