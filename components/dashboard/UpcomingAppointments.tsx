@@ -18,6 +18,14 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = memo(({
         .filter(a => a.date === selectedDate)
         .sort((a, b) => a.time.localeCompare(b.time));
 
+    if (!appointments || !appointments.length) {
+        console.error('No appointments provided');
+    }
+
+    if (!selectedDate) {
+        console.error('No selected date provided');
+    }
+
     return (
         <div className="bg-white dark:bg-[#121721]/40 border border-slate-100 dark:border-white/5 rounded-[2.5rem] shadow-sm flex flex-col h-full overflow-hidden">
             <div className="p-8 border-b border-slate-50 dark:border-white/5 bg-gradient-to-r from-transparent to-slate-50/30 dark:to-white/5">
@@ -57,7 +65,7 @@ export const UpcomingAppointments: React.FC<UpcomingAppointmentsProps> = memo(({
             </div>
 
             <div className="flex-1 overflow-y-auto p-6 space-y-4 max-h-[400px] scrollbar-hide">
-                {filteredAppts.length > 0 ? (
+                {filteredAppts && filteredAppts.length > 0 ? (
                     filteredAppts.map((appt) => (
                         <div key={appt.id} className="flex gap-4 group">
                             <div className="flex flex-col items-center">
